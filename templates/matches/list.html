@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Fixture | Mundial 2026{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="fwc-kicker">FIFA Match Center</p>
+  <h1 class="h2 mb-1">Fixture</h1>
+  <p class="mb-0 text-secondary">Todos los partidos ordenados por fecha, sede y fase.</p>
+</header>
+
+<div class="fixture-list">
+  {% for match in matches %}
+    {% include "components/match_card.html" %}
+  {% endfor %}
+</div>
+{% endblock %}

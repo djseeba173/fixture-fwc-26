@@ -1,0 +1,24 @@
+databases:
+  - name: fixture-mundial-2026-db
+    plan: free
+    databaseName: fixture_mundial_2026
+    user: fixture_mundial_2026
+
+services:
+  - type: web
+    name: fixture-mundial-2026
+    runtime: python
+    plan: free
+    buildCommand: bash ./build.sh
+    startCommand: gunicorn project.wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fixture-mundial-2026-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: WEB_CONCURRENCY
+        value: "4"

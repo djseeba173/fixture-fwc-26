@@ -1,0 +1,30 @@
+<a class="fwc-card match-card" href="{% url 'match_detail' match.pk %}">
+  <div class="match-card__team">
+    {% include "components/team_badge.html" with team=match.home_team source=match.home_source meta=match.home_team.fifa_code size="44px" %}
+  </div>
+  <div class="match-card__score">
+    {% if match.home_score != None and match.away_score != None %}
+      {{ match.home_score }} - {{ match.away_score }}
+    {% else %}
+      vs
+    {% endif %}
+  </div>
+  <div class="match-card__team text-lg-end">
+    {% include "components/team_badge.html" with team=match.away_team source=match.away_source meta=match.away_team.fifa_code align="right" size="44px" %}
+  </div>
+  <div class="match-card__meta">
+    <span>#{{ match.match_number }}</span>
+    <span>{{ match.round_name }}</span>
+    <span>
+      {% if match.date_time %}
+        {{ match.date_time|date:"d M Y" }} · {{ match.date_time|date:"H:i" }} ART
+      {% else %}
+        {{ match.date|date:"d M Y" }} · Horario a confirmar
+      {% endif %}
+    </span>
+    <span>{{ match.stadium.name|default:match.ground }}</span>
+    <span class="status-badge {% if match.status == 'live' %}is-live{% elif match.status == 'finished' %}is-finished{% endif %}">
+      {{ match.get_status_display }}
+    </span>
+  </div>
+</a>

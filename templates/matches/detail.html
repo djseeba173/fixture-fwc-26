@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Partido #{{ match.match_number }} | Mundial 2026{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="fwc-kicker">Match Center</p>
+  <h1 class="h2 mb-1">Partido #{{ match.match_number }}</h1>
+  <p class="mb-0 text-secondary">
+    {{ match.round_name }} ·
+    {% if match.date_time %}
+      {{ match.date_time|date:"d M Y" }} · {{ match.date_time|date:"H:i" }} ART
+    {% else %}
+      {{ match.date|date:"d M Y" }} · Horario a confirmar
+    {% endif %}
+  </p>
+</header>
+
+<div class="row g-4">
+  <section class="col-xl-8">
+    <div class="detail-scoreboard">
+      <div class="detail-scoreboard__teams">
+        {% include "components/team_badge.html" with team=match.home_team source=match.home_source meta=match.home_team.fifa_code size="72px" %}
+        <div class="detail-scoreboard__score">
+          {% if match.home_score != None and match.away_score != None %}
+            {{ match.home_score }} - {{ match.away_score }}
+          {% else %}
+            vs
+          {% endif %}
+        </div>
+        {% include "components/team_badge.html" with team=match.away_team source=match.away_source meta=match.away_team.fifa_code align="right" size="72px" %}
+      </div>
+      <div class="row g-3 mt-4">
+        <div class="col-md-3"><span class="status-badge {% if match.status == 'live' %}is-live{% elif match.status == 'finished' %}is-finished{% endif %}">{{ match.get_status_display }}</span></div>
+        <div class="col-md-3"><strong>Fase</strong><br>{{ match.get_phase_display }}</div>
+        {% if match.group %}<div class="col-md-3"><strong>Grupo</strong><br>{{ match.group.name }}</div>{% endif %}
+        <div class="col-md-3"><strong>Estadio</strong><br>{{ match.stadium.name|default:match.ground }}</div>
+      </div>
+    </div>
+  </section>
+  <section class="col-xl-4">
+    <div class="fwc-card">
+      <div class="fwc-card-header">
+        <div>
+          <p class="fwc-kicker mb-1">Resultado</p>
+          <h2 class="h5 mb-0">Cargar marcador</h2>
+        </div>
+      </div>
+      <div class="p-3">
+        <form method="post" action="{% url 'save_result' match.pk %}" class="vstack gap-3">
+          {% csrf_token %}
+          <div class="row g-2">
+            <div class="col"><label class="form-label">Local</label><input class="form-control" type="number" min="0" name="home_score" value="{{ match.home_score|default_if_none:'' }}"></div>
+            <div class="col"><label class="form-label">Visitante</label><input class="form-control" type="number" min="0" name="away_score" value="{{ match.away_score|default_if_none:'' }}"></div>
+          </div>
+          <div class="row g-2">
+            <div class="col"><label class="form-label">ET local</label><input class="form-control" type="number" min="0" name="extra_time_home_score" value="{{ match.extra_time_home_score|default_if_none:'' }}"></div>
+            <div class="col"><label class="form-label">ET visitante</label><input class="form-control" type="number" min="0" name="extra_time_away_score" value="{{ match.extra_time_away_score|default_if_none:'' }}"></div>
+          </div>
+          <div class="row g-2">
+            <div class="col"><label class="form-label">Pen local</label><input class="form-control" type="number" min="0" name="penalty_home_score" value="{{ match.penalty_home_score|default_if_none:'' }}"></div>
+            <div class="col"><label class="form-label">Pen visitante</label><input class="form-control" type="number" min="0" name="penalty_away_score" value="{{ match.penalty_away_score|default_if_none:'' }}"></div>
+          </div>
+          <select class="form-select" name="status">
+            <option value="scheduled" {% if match.status == "scheduled" %}selected{% endif %}>Programado</option>
+            <option value="live" {% if match.status == "live" %}selected{% endif %}>En vivo</option>
+            <option value="finished" {% if match.status == "finished" %}selected{% endif %}>Finalizado</option>
+          </select>
+          <button class="btn fwc-btn" type="submit">Guardar</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

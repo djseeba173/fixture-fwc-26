@@ -1,0 +1,15 @@
+{% load fwc_assets %}
+{% if team %}
+  {% team_crest team as crest_url %}
+  {% team_label team source as display_name %}
+{% else %}
+  {% team_crest source as crest_url %}
+  {% team_label source source as display_name %}
+{% endif %}
+<span class="team-badge {% if align == 'right' %}is-right{% endif %}" style="--crest-size: {{ size|default:'38px' }};">
+  <img class="team-badge__crest" src="{{ crest_url }}" alt="Escudo {{ display_name }}">
+  <span class="team-badge__text">
+    <span class="team-badge__name">{{ display_name }}</span>
+    {% if meta %}<span class="team-badge__meta">{{ meta }}</span>{% endif %}
+  </span>
+</span>

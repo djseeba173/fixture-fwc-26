@@ -1,4 +1,101 @@
 
+## Mundial 2026 Web App
+
+Aplicación Django para administrar y visualizar el Mundial 2026 usando los JSON de `2026/` como fuente inicial.
+
+### Stack
+
+- Python 3.12+
+- Django 5
+- SQLite en desarrollo, configurable para PostgreSQL por variables de entorno
+- Django Templates, HTMX y Bootstrap 5
+- Django REST Framework
+- pytest y pytest-django
+
+### Instalación
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py import_worldcup_data
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+### Rutas principales
+
+- `/` inicio con próximos partidos, últimos resultados y grupos
+- `/groups/` listado de grupos
+- `/groups/A/` detalle de grupo con tabla y carga HTMX de resultados
+- `/fixtures/` fixture completo
+- `/matches/<id>/` detalle y edición de resultado
+- `/bracket/` bracket visual
+- `/admin/` administración Django
+
+### API
+
+- `GET /api/groups/`
+- `GET /api/teams/`
+- `GET /api/matches/`
+- `GET /api/standings/`
+- `GET /api/bracket/`
+- `POST /api/matches/<id>/result/`
+
+Ejemplo:
+
+```powershell
+Invoke-RestMethod -Method Post -ContentType "application/json" `
+  -Uri http://127.0.0.1:8000/api/matches/1/result/ `
+  -Body '{"home_score":2,"away_score":1,"status":"finished"}'
+```
+
+### Datos y reglas
+
+El comando `import_worldcup_data` lee `worldcup.json`, `worldcup.groups.json`, `worldcup.teams.json`, `worldcup.stadiums.json` y conserva la estructura real de eliminatorias desde las fuentes del fixture (`1A`, `2B`, `W101`, etc.). Es idempotente: puede ejecutarse varias veces sin duplicar equipos, grupos, estadios ni partidos.
+
+Las tablas se recalculan con 3 puntos por victoria, 1 por empate y desempate por puntos, diferencia de gol y goles a favor. Al finalizar partidos de grupo se actualizan posiciones y clasificaciones; al finalizar cruces se avanza el ganador al siguiente slot configurado.
+
+### Tests
+
+```powershell
+pytest
+coverage run -m pytest
+coverage report
+```
+
+### Deploy en Render
+
+El proyecto incluye `render.yaml` para crear un Blueprint con:
+
+- Web service Python en plan free.
+- PostgreSQL en plan free.
+- Build command: `./build.sh`.
+- Start command: `gunicorn project.wsgi:application`.
+
+Pasos:
+
+1. Subir el repo a GitHub.
+2. En Render, ir a **Blueprints**.
+3. Crear un **New Blueprint Instance** desde este repo.
+4. Aplicar el blueprint.
+
+El build ejecuta:
+
+```bash
+pip install -r requirements.txt
+python manage.py collectstatic --no-input
+python manage.py migrate
+python manage.py import_worldcup_data
+```
+
+Después del primer deploy, crear el usuario admin desde la Shell de Render:
+
+```bash
+python manage.py createsuperuser
+```
+
 ## Update - What's news?
    
 sorry for the slow start-up on day 1. good morning it was 9am here in austria when i checked in.  

@@ -1,0 +1,18 @@
+<a class="fwc-card group-card" href="{% url 'group_detail' group.short_name %}">
+  <div class="group-card__top">
+    <div>
+      <p class="fwc-kicker mb-1">Álbum de grupo</p>
+      <h2 class="h4 mb-0">{{ group.name }}</h2>
+    </div>
+    <span class="group-card__badge">{{ group.short_name }}</span>
+  </div>
+  <div class="group-card__teams">
+    {% for team in group.teams.all %}
+      <div class="album-row">
+        <span class="album-row__pos">{{ forloop.counter }}</span>
+        {% include "components/team_badge.html" with team=team meta=team.fifa_code size="34px" %}
+        <span class="status-badge">{{ team.confederation|default:"FWC" }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</a>

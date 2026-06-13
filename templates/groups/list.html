@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Grupos | Mundial 2026{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="fwc-kicker">Colección de equipos</p>
+  <h1 class="h2 mb-1">Grupos</h1>
+  <p class="mb-0 text-secondary">Los 12 grupos del Mundial 2026 con sus selecciones y escudos.</p>
+</header>
+
+<div class="group-grid">
+  {% for group in groups %}
+    {% include "components/group_card.html" %}
+  {% endfor %}
+</div>
+{% endblock %}

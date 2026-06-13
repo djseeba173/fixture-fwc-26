@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Inicio | Mundial 2026{% endblock %}
+{% block content %}
+<section class="fwc-hero">
+  <div class="d-flex flex-column justify-content-between gap-3">
+    <div>
+      <img class="fwc-hero-logo mb-3" src="{% static 'img/logo_fwc26.png' %}" alt="FIFA World Cup 2026">
+      <p class="fwc-kicker text-white mb-2">Fixture interactivo</p>
+      <h1>{{ tournament.name|default:"Mundial 2026" }}</h1>
+      <p class="lead mb-0">Grupos, resultados, posiciones y bracket en una experiencia de álbum mundialista.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn fwc-btn" href="{% url 'bracket' %}">Ver bracket</a>
+      <a class="btn fwc-btn fwc-btn-secondary" href="{% url 'fixture_list' %}">Fixture completo</a>
+    </div>
+  </div>
+  <aside class="fwc-hero-panel">
+    <div>
+      <p class="fwc-kicker">Próximo partido</p>
+      {% with match=upcoming.0 %}
+        {% if match %}
+          {% include "components/match_card.html" %}
+        {% else %}
+          <p class="mb-0">No hay partidos pendientes.</p>
+        {% endif %}
+      {% endwith %}
+    </div>
+  </aside>
+</section>
+
+<div class="row g-4">
+  <section class="col-lg-6">
+    <div class="fwc-section-title"><h2 class="h5 mb-0">Próximos partidos</h2></div>
+    <div class="fixture-list">
+      {% for match in upcoming %}
+        {% include "components/match_card.html" %}
+      {% empty %}
+        <div class="fwc-card p-3 text-secondary">Sin partidos pendientes.</div>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="col-lg-6">
+    <div class="fwc-section-title"><h2 class="h5 mb-0">Últimos resultados</h2></div>
+    <div class="fixture-list">
+      {% for match in results %}
+        {% include "components/match_card.html" %}
+      {% empty %}
+        <div class="fwc-card p-3 text-secondary">Todavía no hay resultados.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<section class="mt-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="fwc-section-title mb-0"><h2 class="h5 mb-0">Grupos</h2></div>
+    <a href="{% url 'group_list' %}" class="btn fwc-btn fwc-btn-secondary btn-sm">Todos</a>
+  </div>
+  <div class="group-grid">
+    {% for group in groups %}
+      {% include "components/group_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
