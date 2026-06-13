@@ -413,7 +413,8 @@ a {
 }
 
 .standing-table {
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .standing-table table {
@@ -694,17 +695,39 @@ a {
     grid-template-columns: 1fr;
   }
 
-  .match-card,
   .detail-scoreboard__teams {
     grid-template-columns: 1fr;
     text-align: center;
   }
 
-  .team-badge,
-  .team-badge.is-right {
+  .detail-scoreboard__teams .team-badge,
+  .detail-scoreboard__teams .team-badge.is-right {
     justify-content: center;
     flex-direction: column;
     text-align: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .match-card {
+    gap: 0.4rem;
+    padding: 0.65rem 0.75rem;
+    min-height: 0;
+  }
+
+  .match-card__score {
+    min-width: 60px;
+    font-size: 1.05rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 12px;
+  }
+
+  .team-badge__name {
+    font-size: 0.8rem;
+  }
+
+  .team-badge__meta {
+    font-size: 0.66rem;
   }
 }
 
