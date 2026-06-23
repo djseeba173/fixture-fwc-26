@@ -16,6 +16,7 @@ urlpatterns = [
     path("matches/<int:pk>/", views.match_detail, name="match_detail"),
     path("matches/<int:pk>/result/", views.save_result, name="save_result"),
     path("bracket/", views.bracket, name="bracket"),
+    path("stats/", views.stats, name="stats"),
     path("api/", include(api.router.urls)),
     path("api/matches/<int:pk>/result/", api.MatchResultView.as_view(), name="api_match_result"),
 ]
