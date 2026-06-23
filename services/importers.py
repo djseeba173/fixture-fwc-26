@@ -148,30 +148,51 @@ def _import_matches(
         home_source = "" if home_team else item.get("team1", "")
         away_source = "" if away_team else item.get("team2", "")
 
-        match, _ = Match.objects.update_or_create(
-            tournament=tournament,
-            match_number=match_number,
-            defaults={
-                "phase": phase,
-                "round_name": item.get("round", ""),
-                "group": group,
-                "stadium": stadiums.get(item.get("ground", "")),
-                "ground": item.get("ground", ""),
-                "date": date_value,
-                "time_text": item.get("time", ""),
-                "date_time": _parse_datetime(date_value, item.get("time", "")),
-                "home_team": home_team,
-                "away_team": away_team,
-                "home_source": home_source,
-                "away_source": away_source,
+        defaults = {
+            "phase": phase,
+            "round_name": item.get("round", ""),
+            "group": group,
+            "stadium": stadiums.get(item.get("ground", "")),
+            "ground": item.get("ground", ""),
+            "date": date_value,
+            "time_text": item.get("time", ""),
+            "date_time": _parse_datetime(date_value, item.get("time", "")),
+            "home_team": home_team,
+            "away_team": away_team,
+            "home_source": home_source,
+            "away_source": away_source,
+        }
+
+        existing = Match.objects.filter(tournament=tournament, match_number=match_number).first()
+        # El marcador solo se toca si el JSON lo trae, o si el partido aun no tiene resultado.
+        # Asi los resultados cargados a mano (web o seed_results) sobreviven a cada re-deploy
+        # en vez de ser reseteados a SCHEDULED por la reimportacion del fixture base.
+        if score:
+            defaults.update({
                 "home_score": score.get("ft", (None, None))[0],
                 "away_score": score.get("ft", (None, None))[1],
                 "extra_time_home_score": score.get("et", (None, None))[0],
                 "extra_time_away_score": score.get("et", (None, None))[1],
                 "penalty_home_score": score.get("p", (None, None))[0],
                 "penalty_away_score": score.get("p", (None, None))[1],
-                "status": MatchStatus.FINISHED if score else MatchStatus.SCHEDULED,
-            },
+                "status": MatchStatus.FINISHED,
+            })
+        elif existing is None or existing.status != MatchStatus.FINISHED:
+            defaults.update({
+                "home_score": None,
+                "away_score": None,
+                "extra_time_home_score": None,
+                "extra_time_away_score": None,
+                "penalty_home_score": None,
+                "penalty_away_score": None,
+                "status": MatchStatus.SCHEDULED,
+            })
+        # else: el partido ya tiene resultado y el JSON no trae nada -> se preserva intacto.
+
+        match, _ = Match.objects.update_or_create(
+            tournament=tournament,
+            match_number=match_number,
+            defaults=defaults,
         )
         if phase != Phase.GROUP:
             KnockoutMatch.objects.update_or_create(
