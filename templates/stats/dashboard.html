@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% block title %}Stats | Mundial 2026{% endblock %}
+
+{% block content %}
+<header class="page-head mb-4">
+  <p class="fwc-kicker">Análisis de datos</p>
+  <h1 class="h2 mb-1">Dashboard de estadísticas</h1>
+  <p class="mb-0 text-secondary">Goles, resultados y tendencias del torneo en tiempo real.</p>
+</header>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="fwc-card p-3 text-center h-100">
+      <div class="stats-kpi-value">{{ total_matches }}</div>
+      <div class="stats-kpi-label">Partidos jugados</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="fwc-card p-3 text-center h-100" style="border-top: 4px solid var(--fwc-green);">
+      <div class="stats-kpi-value" style="color:var(--fwc-green);">{{ total_goals }}</div>
+      <div class="stats-kpi-label">Goles totales</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="fwc-card p-3 text-center h-100" style="border-top: 4px solid var(--fwc-blue);">
+      <div class="stats-kpi-value" style="color:var(--fwc-blue);">{{ avg_gpm }}</div>
+      <div class="stats-kpi-label">Promedio goles/partido</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="fwc-card p-3 text-center h-100" style="border-top: 4px solid var(--fwc-red);">
+      <div class="stats-kpi-value" style="color:var(--fwc-red);">{{ home_wins }}</div>
+      <div class="stats-kpi-label">Victorias local</div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 1: Goles por equipo + Donut resultados -->
+<div class="row g-3 mb-3">
+  <div class="col-lg-8">
+    <div class="fwc-card p-3 h-100">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Goles anotados por equipo (top 15)</h2>
+      <div class="stats-chart-wrap">
+        <canvas id="chartScored"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="fwc-card p-3 h-100">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Distribución de resultados</h2>
+      <div class="stats-chart-wrap stats-chart-donut">
+        <canvas id="chartResults"></canvas>
+      </div>
+      <div class="d-flex justify-content-center gap-3 mt-3 flex-wrap" style="font-size:.8rem;font-weight:700;">
+        <span><span class="stats-dot" style="background:var(--fwc-green);"></span> Local ({{ home_wins }})</span>
+        <span><span class="stats-dot" style="background:var(--fwc-light);"></span> Empate ({{ draws }})</span>
+        <span><span class="stats-dot" style="background:var(--fwc-blue);"></span> Visitante ({{ away_wins }})</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: Mejor defensa + GPM -->
+<div class="row g-3 mb-3">
+  <div class="col-lg-6">
+    <div class="fwc-card p-3 h-100">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Mejores defensas — menos goles recibidos</h2>
+      <div class="stats-chart-wrap">
+        <canvas id="chartDefense"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="fwc-card p-3 h-100">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Promedio de goles por partido (top 15)</h2>
+      <div class="stats-chart-wrap">
+        <canvas id="chartGpm"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: Goles por fase + por grupo -->
+<div class="row g-3 mb-3">
+  <div class="col-lg-6">
+    <div class="fwc-card p-3 h-100">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Goles por fase del torneo</h2>
+      <div class="stats-chart-wrap">
+        <canvas id="chartPhase"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="fwc-card p-3 h-100">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Goles por grupo</h2>
+      <div class="stats-chart-wrap">
+        <canvas id="chartGroup"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 4: Timeline -->
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="fwc-card p-3">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Evolución de goles — partido a partido</h2>
+      <div style="height:220px;">
+        <canvas id="chartTimeline"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 5: Top partidos -->
+{% if top_matches %}
+<div class="row g-3">
+  <div class="col-12">
+    <div class="fwc-card p-3">
+      <h2 class="h6 mb-3" style="color:var(--fwc-blue);font-family:var(--fwc-font-title);">Partidos con más goles</h2>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0" style="font-size:.88rem;">
+          <thead>
+            <tr style="background:var(--fwc-blue);color:#fff;">
+              <th class="fw-700 py-2 px-3">#</th>
+              <th class="fw-700 py-2">Partido</th>
+              <th class="fw-700 py-2 text-center">Goles</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in top_matches %}
+            <tr>
+              <td class="px-3 text-secondary fw-bold">{{ forloop.counter }}</td>
+              <td class="fw-bold">{{ m.label }}</td>
+              <td class="text-center">
+                <span class="status-badge is-finished">{{ m.total }}</span>
+              </td>
+              <td><a href="{% url 'match_detail' m.pk %}" class="btn btn-sm fwc-btn py-1 px-3" style="font-size:.75rem;">Ver</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<style>
+.stats-kpi-value {
+  font-family: var(--fwc-font-title);
+  font-size: 2.4rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--fwc-dark);
+}
+.stats-kpi-label {
+  font-size: .78rem;
+  font-weight: 700;
+  color: rgba(71,74,74,.7);
+  margin-top: .3rem;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.stats-chart-wrap {
+  height: 280px;
+  position: relative;
+}
+.stats-chart-donut {
+  height: 200px;
+}
+.stats-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const GREEN  = '#3CAC3B';
+const BLUE   = '#2A398D';
+const RED    = '#E61D25';
+const LIGHT  = '#D1D4D1';
+const DARK   = '#474A4A';
+
+const scored  = {{ j_scored|safe }};
+const defense = {{ j_defense|safe }};
+const gpm     = {{ j_gpm|safe }};
+const phase   = {{ j_phase|safe }};
+const group   = {{ j_group|safe }};
+const results = {{ j_results|safe }};
+const timeline= {{ j_timeline|safe }};
+
+const barDefaults = {
+  borderRadius: 6,
+  borderSkipped: false,
+};
+
+const tickFont = { family: 'Inter', size: 11, weight: '700' };
+
+function hBar(id, data, color) {
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{ data: data.data, backgroundColor: color, ...barDefaults }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(71,74,74,.08)' }, ticks: { font: tickFont, color: DARK } },
+        y: { grid: { display: false }, ticks: { font: tickFont, color: DARK } },
+      },
+    },
+  });
+}
+
+function vBar(id, data, color) {
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{ data: data.data, backgroundColor: color, ...barDefaults }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: tickFont, color: DARK } },
+        y: { grid: { color: 'rgba(71,74,74,.08)' }, ticks: { font: tickFont, color: DARK } },
+      },
+    },
+  });
+}
+
+hBar('chartScored',  scored,  GREEN);
+hBar('chartDefense', defense, BLUE);
+hBar('chartGpm',     gpm,     RED);
+vBar('chartPhase',   phase,   BLUE);
+vBar('chartGroup',   group,   GREEN);
+
+new Chart(document.getElementById('chartResults'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Local', 'Empate', 'Visitante'],
+    datasets: [{
+      data: results.data,
+      backgroundColor: [GREEN, LIGHT, BLUE],
+      borderWidth: 2,
+      borderColor: '#fff',
+    }],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} partidos` } },
+    },
+  },
+});
+
+new Chart(document.getElementById('chartTimeline'), {
+  type: 'line',
+  data: {
+    labels: timeline.labels,
+    datasets: [
+      {
+        label: 'Goles acumulados',
+        data: timeline.cumulative,
+        borderColor: BLUE,
+        backgroundColor: 'rgba(42,57,141,.10)',
+        fill: true,
+        tension: .35,
+        pointRadius: 2,
+        borderWidth: 2,
+        yAxisID: 'yCum',
+      },
+      {
+        label: 'Goles en el partido',
+        data: timeline.goals,
+        borderColor: GREEN,
+        backgroundColor: 'transparent',
+        type: 'bar',
+        borderRadius: 3,
+        yAxisID: 'yGoals',
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        labels: { font: tickFont, color: DARK, boxWidth: 12 },
+      },
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10 }, color: DARK, maxTicksLimit: 20 } },
+      yCum:   { position: 'left',  grid: { color: 'rgba(71,74,74,.08)' }, ticks: { font: tickFont, color: BLUE } },
+      yGoals: { position: 'right', grid: { display: false }, ticks: { font: tickFont, color: GREEN } },
+    },
+  },
+});
+</script>
+{% endblock %}
